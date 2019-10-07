@@ -1,0 +1,55 @@
+library(readxl)
+library(ggplot2)
+library(markdown)
+library(dplyr)
+PlayerSalariesProject <- read_excel("~/Desktop/Baseball Projects/Baseball Salaries/PlayerSalariesProject.xlsx", 
+                                    sheet = "Original Data", range = "A1:I336")
+
+head((PlayerSalariesProject))
+
+#Cleaning up the data
+Salary <- PlayerSalariesProject$`Salary Given Year`
+Salary <- Salary/1000000
+
+#Plots looking at fWAR by Salary
+
+ggplot(PlayerSalariesProject, aes(x=Salary,y=PlayerSalariesProject$WAR)) + 
+  geom_point() + geom_smooth(aes(x=Salary, y= PlayerSalariesProject$WAR, method='lm')) + 
+  stat_cor(label.x = 20, label.y = 14) +
+  stat_regline_equation(label.x = 20, label.y = 15) +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title="fWAR by Salary",x="Salary in Millions of $",y="fWAR")
+
+ #Table looking at frequency of each Scout Grade and the average WAR for each Grade
+#(335 total entries)
+
+PlayerSalariesProject %>%
+  group_by(Grade) %>%
+  mutate(NumPlayers = Position, AvgWAR = WAR) %>%
+  summarise(NumPlayers = n(), AvgWAR = mean(WAR))
+
+# Graph of fWAR vs FanGraph  Player Status
+
+ggplot(PlayerSalariesProject,aes(x=PlayerSalariesProject$Grade)) + 
+  geom_bar(color = c(2,2,2,7,7,7,7,3,3,3),fill = c(2,2,2,7,7,7,7,3,3,3),stat="count") + 
+  scale_x_continuous(breaks=c(20,25,30,35,40,45,50,55,60,65,70,75,80)) + 
+  scale_y_continuous(breaks=c(0,10,20,30,40,50,60,70,80)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title="Number of Players Given Scout Grade",  x="Grading Scale",y="Number of Players")
+
+#Table looking at each position and their production level
+
+PlayerSalariesProject %>%
+ group_by(Position) %>%
+ mutate(NumPlayers = Grade, AvgWAR = WAR) %>%
+ summarise(NumPlayers = n(), AvgWAR= mean(WAR)) %>% 
+ arrange(AvgWAR)
+
+#Barchart of sum of fWAR by position
+
+ggplot(PlayerSalariesProject, aes(PlayerSalariesProject$Position)) + 
+  geom_bar(color=c(1,2,3,4,5,6,7,8),fill=c(1,2,3,4,5,6,7,8),stat="count") +
+  coord_flip() + scale_fill_brewer(palette="Spectral") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title="Count of Players by Position",x="Positions",y="Number of Players")
+ 
